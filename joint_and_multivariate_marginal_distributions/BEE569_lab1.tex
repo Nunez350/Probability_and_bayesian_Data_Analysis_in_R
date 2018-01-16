@@ -1,0 +1,188 @@
+
+\documentclass[11]{article}\usepackage[]{graphicx}\usepackage[]{color}
+%% maxwidth is the original width if it is less than linewidth
+%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+\let\hlipl\hlkwb
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+\usepackage{indentfirst}
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+
+
+\begin{flushleft}
+
+Roy Nunez\\
+Bayesian Data Analysis\\
+Lab \#1\\
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{#plotting function and required R libraries}
+\hlkwd{library}\hlstd{(}\hlstr{"gridExtra"}\hlstd{)}
+\hlkwd{library}\hlstd{(}\hlstr{"ggplot2"}\hlstd{)}
+\hlstd{makeplot}\hlkwb{<-}\hlkwa{function}\hlstd{(}\hlkwc{varx}\hlstd{,}\hlkwc{vary}\hlstd{)\{}
+  \hlstd{hist_top} \hlkwb{<-} \hlkwd{ggplot}\hlstd{()}\hlopt{+}\hlkwd{geom_histogram}\hlstd{(}\hlkwd{aes}\hlstd{(varx),}\hlkwc{binwidth} \hlstd{=} \hlnum{1}\hlstd{)}
+  \hlstd{empty}\hlkwb{<-}\hlkwd{ggplot}\hlstd{()}\hlopt{+}\hlkwd{geom_point}\hlstd{(}\hlkwd{aes}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{),} \hlkwc{colour}\hlstd{=}\hlstr{"blue"}\hlstd{)}
+  \hlstd{scatter} \hlkwb{<-} \hlkwd{ggplot}\hlstd{()}\hlopt{+}\hlkwd{geom_point}\hlstd{(}\hlkwd{aes}\hlstd{(varx, vary))}
+  \hlstd{hist_right} \hlkwb{<-} \hlkwd{ggplot}\hlstd{()}\hlopt{+}\hlkwd{geom_histogram}\hlstd{(}\hlkwd{aes}\hlstd{(vary),}\hlkwc{binwidth} \hlstd{=} \hlnum{1}\hlstd{)}\hlopt{+}\hlkwd{coord_flip}\hlstd{()}
+  \hlkwd{grid.arrange}\hlstd{(hist_top, empty, scatter, hist_right,} \hlkwc{ncol}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{nrow}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{widths}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{4}\hlstd{,} \hlnum{1}\hlstd{),} \hlkwc{heights}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,} \hlnum{4}\hlstd{))}
+\hlstd{\}}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+\vspace{ 6  mm} 
+Question \#1
+
+The probability density function of (x,y) is 
+
+$f(x,y) =6/(x^4,y^4), 1 \geq x, y \leq \infty$\\
+
+
+
+
+Question \#2
+
+
+$p(x,\,\leq\,y)$
+
+$\displaystyle{=\int_R f(x,y) dxdy}$\\
+$\displaystyle{=\int_x   \hspace{4 mm}  6/(y^3,y^4)dxdy}$\\
+
+$\displaystyle{=\int_1^\infty \int_1^y dx/x^3}y^4dy$\\
+
+$\displaystyle{= 6 \int_1^\infty \hspace{ 2 mm} (-1/2x^2) y^-4 dy}$\\	
+
+\vspace{ 3 mm} 
+$=6 \int1^\infty (-1/2y^2) + 1/2 y^-4) dy$\\
+$=6 \int_1^\infty(-1/2 y^-6 + \frac{1}{2} y ^{-4} $\\
+
+$=6(-\frac{1}{2} \frac{y^{-5}}{-3} + \frac{1}{2} \frac{y^{-3}}{-3})$\\
+$=6(\frac{1}{10y^5} -\frac{1}{6y^3})$\\
+$=6[0 - (\frac{1}{10} - \frac{1}{6}]$\\
+$=6[\frac{1}{6} - \frac{1}{10}]$\\
+$=1-\frac{6}{10}$\\
+$=1 - \frac{3}{5}$\\
+$=\frac{2}{5}$\\
+
+Question \#3\\
+1. Case \#1\\
+$f(x,y) = \frac{1}{144}, \hspace{4 mm} 
+-6\leq x \leq 6 \hspace{8 mm} -6 \leq y \leq 6$
+\vspace{3 mm}\\
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{x}\hlkwb{<-}\hlkwd{seq}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{1000}\hlstd{)}
+\hlstd{y}\hlkwb{<-}\hlkwd{seq}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{1000}\hlstd{)}
+\hlstd{pointx}\hlkwb{=}\hlkwd{runif}\hlstd{(x,}\hlopt{-}\hlnum{6}\hlstd{,}\hlnum{6}\hlstd{)}
+\hlstd{pointy}\hlkwb{=}\hlkwd{runif}\hlstd{(y,}\hlopt{-}\hlnum{6}\hlstd{,}\hlnum{6}\hlstd{)}
+\hlkwd{makeplot}\hlstd{(pointx,pointy)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-2-1} 
+
+\end{knitrout}
+
+
+2. Case \#2\\
+
+$ P(X=x | Y=y) = \hspace{4 mm} f_{y}(x) \hspace{4 mm} = \frac{1}{12} , -6 \leq x \leq 6$  
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{vecx}\hlkwb{<-}\hlkwd{vector}\hlstd{();vecy}\hlkwb{<-}\hlkwd{vector}\hlstd{();points}\hlkwb{<-}\hlnum{0}
+\hlkwa{while}\hlstd{(points}\hlopt{<} \hlnum{1000}\hlstd{)\{}
+  \hlstd{tempx}\hlkwb{<-}\hlkwd{runif}\hlstd{(}\hlnum{1}\hlstd{,} \hlopt{-}\hlnum{6}\hlstd{,}\hlnum{6}\hlstd{)}
+  \hlstd{tempy}\hlkwb{<-}\hlkwd{runif}\hlstd{(}\hlnum{1}\hlstd{,} \hlopt{-}\hlnum{6}\hlstd{,}\hlnum{6}\hlstd{)}
+  \hlkwa{if} \hlstd{(tempx} \hlopt{>} \hlstd{tempy)\{}
+    \hlstd{vecx}\hlkwb{<-}\hlkwd{append}\hlstd{(vecx, tempx)}
+    \hlstd{vecy}\hlkwb{<-}\hlkwd{append}\hlstd{(vecy,tempy)}
+   \hlstd{points}\hlkwb{<-} \hlstd{points} \hlopt{+}\hlnum{1}
+  \hlstd{\}}
+\hlstd{\}}
+\hlkwd{makeplot}\hlstd{(vecx,vecy)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-3-1} 
+
+\end{knitrout}
+
+\vspace{3 mm}
+3.Case \#3\\
+$P(Y=y | X=x) = f_{x}(y) \frac{1}{12}, \hspace{4 mm} -6 \leq y \leq 6$\\
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{vecx}\hlkwb{<-}\hlkwd{vector}\hlstd{();vecy}\hlkwb{<-}\hlkwd{vector}\hlstd{();points}\hlkwb{<-}\hlnum{0}
+\hlkwa{while}\hlstd{(points}\hlopt{<} \hlnum{1000}\hlstd{)\{}
+  \hlstd{tempx}\hlkwb{<-}\hlkwd{runif}\hlstd{(}\hlnum{1}\hlstd{,} \hlopt{-}\hlnum{6}\hlstd{,}\hlnum{6}\hlstd{)}
+  \hlstd{tempy}\hlkwb{<-}\hlkwd{runif}\hlstd{(}\hlnum{1}\hlstd{,} \hlopt{-}\hlnum{6}\hlstd{,}\hlnum{6}\hlstd{)}
+  \hlkwa{if} \hlstd{(tempx}\hlopt{**}\hlnum{2} \hlopt{+} \hlstd{tempy}\hlopt{**}\hlnum{2} \hlopt{<=} \hlnum{36}\hlstd{)\{}
+    \hlstd{vecx}\hlkwb{<-}\hlkwd{append}\hlstd{(vecx, tempx)}
+    \hlstd{vecy}\hlkwb{<-}\hlkwd{append}\hlstd{(vecy,tempy)}
+    \hlstd{points}\hlkwb{<-} \hlstd{points} \hlopt{+}\hlnum{1}
+  \hlstd{\}}
+\hlstd{\}}
+\hlkwd{makeplot}\hlstd{(vecx,vecy)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-4-1} 
+
+\end{knitrout}
+
+\end{flushleft}\
+\end{document}
+
+
+
+
+
