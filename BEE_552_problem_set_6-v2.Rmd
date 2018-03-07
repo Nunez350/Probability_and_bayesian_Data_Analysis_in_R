@@ -1,0 +1,236 @@
+---
+title: "BEE_552_problem_set_6"
+author: "Roy Nunez"
+date: "2/27/2018"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Question 1 (6 pts)
+Assume data from two groups, a treatment group (n=7) and a control group (n=9) as follows:
+
+Treatment = c(94, 197, 16, 38, 99, 141, 23)
+Control = c(52, 104, 146, 10, 51, 30, 40, 27, 46)
+
+
+Use a permutation method to test the null hypothesis that the treatment does not increase survival time. Report the p-value associated with the one-tailed test of the null hypothesis. (Would the observed difference be significant if we set alpha=0.15?)
+
+```{r}
+
+rm(list=ls(all=TRUE))
+Treatment = c(94, 197, 16, 38, 99, 141, 23)
+Control = c(52, 104, 146, 10, 51, 30, 40, 27, 46)
+ab<-append(Treatment, Control)
+
+#function permutes the given data set given K.num times and and returns the pvalue and the difference of means in reference to the original parameters collected for each permuted sample 
+one.tail.test<-function(data,k.num,treatment,control){
+  k.perm<-k.num
+  ref.mean<-mean(treatment)-mean(control)
+  diff.means<-c()
+#  data=ab;k.perm=1000;treatment=Treatment; control=Control
+  for (i in 1:k.perm){ 
+  perm.samp<-sample(data,size=length(data),replace = F)
+  perm.treat<-perm.samp[1:length(treatment)]
+  treat.mean<-mean(perm.treat)
+  cont.mean<-(sum(data)-sum(perm.treat))/length(control)
+  diff.means[i]<-treat.mean-cont.mean
+  }
+  p.value<-length(diff.means[(diff.means >= ref.mean)])/1000
+  return(list("p.value"= p.value,"diff.means"=diff.means))
+}
+results.one.tail.test<-one.tail.test(ab,1000,Treatment,Control)
+
+cat("The p-value associated with the one-tailed test of the null hypothesis is", results.one.tail.test[[1]])
+
+alpha<-.15
+
+if ((results.one.tail.test[[1]]<=alpha) ==FALSE) {
+  cat("The observed difference would not be significant if we set alpha=0.15 and we fail to reject the null hypothesis")
+}else{cat("The observed difference will be significant if we set alpha=0.15 and we reject the null hypothesis")}
+
+hist(results.one.tail.test[[2]], breaks = 50)
+```
+
+
+Question 2 (16 pts)
+In Question 2, we are going to answer this question in a different way, using nonparametric bootstrap rather than permutation. I am asking you to calculate confidence intervals for the difference in means between the two groups using bootstrap sampling. 
+
+
+a) (2 pts) Use bootstrap to calculate the standard error of the mean for the Treatment group. How does this compare to √((Var[X_T])/n_T )?
+```{r}
+#function samples given dataset with replacement and returns the SEM or the mean of sample of newly generated dataset (will use this function for other future questions in this problem set)
+BootStrap<-function(data, opt){#opt optional parameter for sem or mean
+  size.of.sample<-length(data)
+  option<-opt
+  bootstrap.means<-c()
+  for (i in 1:1000){
+  temp<-sample(x = data, size = size.of.sample, replace = TRUE)
+  bootstrap.means[i]<-mean(temp)#mean(sample(x = data, size = length(data), replace = TRUE))
+  }
+  if (option == "sem"){
+    return(sd(bootstrap.means))
+  }else if ( option=="mean"){
+    return(mean(bootstrap.means))
+  } 
+}
+#computes the variance of the given data
+GetSE<-function(data) sqrt(var(data)/length(data))
+
+```
+
+```{r}
+bs.t<-BootStrap(Treatment, opt="sem") #means of Treatment
+#sd(bs)#standard deviation
+#GetSE(Treatment)#variance
+
+cat("There is a ",bs.t-GetSE(Treatment), "difference between the bootstrap generated SEM and the sample variance. These values are approximately close as expected as n increases and the distributions approach a normal distribution, as stated by the central limit theorem")
+```
+
+
+b) (2 pts) Use bootstrap to calculate the standard error of the mean for the Control group ((〖se〗_(boot,C) ) ̂). How does this compare to √((Var[X_C])/n_C )?
+```{r}
+bs.control<-BootStrap(Control,opt="sem")#bootstrap generated means of control
+#sd(bs.control)#standard deviation
+#GetSE(Control)#variance
+cat("There is a ",bs.control-GetSE(Control), "difference between the bootstrap generated SEM and the sample variance. These values are approximately close as expected as n increases and the distributions approach a normal distribution, as stated by the central limit theorem")
+```
+
+
+c) (4 pts) Calculate the standard error of the difference in means assuming the two groups are independent . We can do this in two steps, whereby we do one loop for the Treatment group, sample with replacement, calculate the mean, and then get a distribution of (Treatment) ̅. 
+Pseudocode:
+1)	Sample with replacement for Treatment and calculate the mean of that bootstrapped sample
+2)	Sample with replacement for Control and calculate the mean of that bootstrapped sample
+3)	Take the difference between these two mean
+4)	Store in a vector and start back at Step #1
+```{r}
+diff.mean.boot<- c()
+for (i in 1:1000){
+  treat.boot<-mean(sample(x = Treatment, size = length(Treatment), replace = TRUE))
+  control.boot<-mean(sample(x = Control, size = length(Control), replace = TRUE))
+  diff.mean.boot [i]<- treat.boot- control.boot
+}
+sem.hat<-sd(diff.mean.boot)
+sqrt(var(Treatment)/length(Treatment) + var(Control)/length(Control))
+```
+
+d) (4 pts) Use your estimate of the standard error of the difference from 2c to estimate the 95th percentile confidence interval on the difference in means (i.e., ((Treatment) ̅-(Control)) ̅±1.96 × (〖se〗_(boot,T-C) ) ̂).
+
+```{r}
+diff.mean<- mean(Treatment)- mean(Control)
+l.b<-diff.mean-(1.96*sem.hat)
+u.b<-diff.mean+(1.96*sem.hat)
+cat("The estimated 95 percent confidence interval of the difference in means is ", l.b, "and",u.b)
+```
+
+e) (4 pts) We're now going to answer for 2d in a slightly different way using the percentiles of the bootstrapped samples. Calculate an 95th percentile confidence interval for the difference in mean survival days ((Treatment) ̅-(Control) ̅) based on the distribution of differences when we bootstrap samples of the treatment and control groups separately. In other words, take a bootstrap sample of the treatment data, take a bootstrap sample of the control data, average these bootstrapped samples, take the difference, and repeat the procedure a large number of times (say, 1000). Use this distribution to estimate the 95th percentile confidence interval for the difference in mean survival days.
+
+```{r}
+tc.mean.boot<- c()
+for (i in 1:1000){
+  treat.boot<-mean(sample(Treatment, size = length(Treatment), replace = TRUE))
+  control.boot<-mean(sample(Control, size = length(Control), replace = TRUE))
+  tc.mean.boot [i]<- treat.boot- control.boot
+}
+
+qt<-quantile(tc.mean.boot,c(0.025,0.975))
+qt
+cat("The 95 percentile confidence interval estimate is ",qt[[1]],qt[[2]])
+hist(tc.mean.boot, breaks = 50)
+```
+
+
+[Side Note: In part d, we assumed normality of both Treatment and Control means to work out what the CI on the difference might be, whereas in part e, we empirically worked out the distribution of the differences. In most applications, the latter procedure is probably preferred because it does not assume any particular distribution for the bootstrapped-generated means.]
+
+
+Question 3 (8 pts)
+Using 'fitditr' or another preferred method of your choice, find the distribution that reasonably well fits the treatment and control datasets. (In other words, find the best fitting parameters for that distribution.) I'm not expecting you to do an in-depth model comparison, as we haven't learned how yet, but I want you to find something that fits reasonably well. You don't need to use the same distribution for both Treatment and Control, though you can.
+
+
+
+```{r}
+rm(list=ls(all=TRUE))
+Treatment = c(94, 197, 16, 38, 99, 141, 23)
+Control = c(52, 104, 146, 10, 51, 30, 40, 27, 46)
+ab<-append(Treatment, Control)
+
+library(MASS)
+ftds<-function(data,distribution) fitdistr(x= data, densfun = distribution)
+dis<-c("poisson","gamma","normal","negative binomial")
+
+control.fit<-c()
+treatment.fit<-c()
+for (i in 1:length(dis)){
+   control.fit[[i]]<-ftds(Control,dis[i])
+  names(control.fit)[i]<-dis[i]
+  treatment.fit[[i]]<-ftds(Treatment,dis[i])
+  names(treatment.fit)[i]<-dis[i]
+  #print(dis[i])
+}
+
+
+treatment.fit
+control.fit
+
+```
+
+A review of the fitdis parameter estimates displays the smallest standard errors with the gamma distribution.
+
+```{r}
+control.gamma<- rgamma(n = 100,shape = control.fit$gamma$estimate[1][[1]], rate = control.fit$gamma$estimate[2][[1]])
+control.gamma.hist<-hist(control.gamma,freq = F)
+gamma.fit<-dgamma(control.gamma.hist$mids, control.fit$gamma$estimate[1][[1]], control.fit$gamma$estimate[2][[1]])
+lines(control.gamma.hist$mids, gamma.fit, col = "blue") 
+
+
+treatment.gamma<- rgamma(n = 100,shape = treatment.fit$gamma$estimate[1][[1]], rate = treatment.fit$gamma$estimate[2][[1]])
+treatment.gamma.hist<-hist(treatment.gamma,freq = F)
+gamma.fit<-dgamma(treatment.gamma.hist$mids, treatment.fit$gamma$estimate[1][[1]],treatment.fit$gamma$estimate[2][[1]])
+lines(treatment.gamma.hist$mids, gamma.fit, col = "blue") 
+```
+
+```{r}
+library(stats)
+sapply(control.fit,AIC)
+```
+?AIC
+A review of AIC output for fitted models estimates a smaller value for the negative binomial distribution
+```{R}
+control.nbinom<-rnbinom(100,size = control.fit$`negative binomial`[[1]][1],mu=control.fit$`negative binomial`[[1]][2])
+control.nbinom.hist<-hist(control.nbinom,freq = F)
+control.nbinom.fit<-dnbinom(control.nbinom.hist$mids, size=control.fit$`negative binomial`[[1]][1], mu=control.fit$`negative binomial`[[1]][2])
+lines(control.nbinom.hist$mids,control.nbinom.fit, col = "blue") 
+
+
+treatment.nbinom<-rnbinom(100,size = treatment.fit$`negative binomial`[[1]][1],mu=treatment.fit$`negative binomial`[[1]][2])
+treatment.nbinom.hist<-hist(treatment.nbinom,freq = F)
+treatment.nbinom.fit<-dnbinom(treatment.nbinom.hist$mids, size=treatment.fit$`negative binomial`[[1]][1], mu=treatment.fit$`negative binomial`[[1]][2])
+lines(treatment.nbinom.hist$mids,treatment.nbinom.fit, col = "blue") 
+```
+
+Using that distribution, answer Question 2e again using a parametric bootstrap approach.
+
+
+e) (4 pts) We're now going to answer for 2d in a slightly different way using the percentiles of the bootstrapped samples. Calculate an 95th percentile confidence interval for the difference in mean survival days ((Treatment) ̅-(Control) ̅) based on the distribution of differences when we bootstrap samples of the treatment and control groups separately. In other words, take a bootstrap sample of the treatment data, take a bootstrap sample of the control data, average these bootstrapped samples, take the difference, and repeat the procedure a large number of times (say, 1000). Use this distribution to estimate the 95th percentile confidence interval for the difference in mean survival days
+```{r}
+gamma.mean.boot<- c()
+for (i in 1:1000){
+  control.gamma<- rgamma(n = 100,shape = control.fit$gamma$estimate[1][[1]], rate = control.fit$gamma$estimate[2][[1]])
+  
+  gamma.control.mean.boot<-mean(control.gamma)
+  treatment.gamma<- rgamma(n = 100,shape = treatment.fit$gamma$estimate[1][[1]], rate = treatment.fit$gamma$estimate[2][[1]])
+   gamma.treat.mean.boot<-mean(treatment.gamma)
+  #treat.boot<-mean(sample(Treatment, size = length(Treatment), replace = TRUE))
+  #control.boot<-mean(sample(Control, size = length(Control), replace = TRUE))
+  gamma.mean.boot[i]<- gamma.treat.mean.boot- gamma.control.mean.boot
+}
+gamma.mean.boot
+qt.gamma<-quantile(gamma.mean.boot,c(0.025,0.975))
+cat("The 95 percentile confidence interval estimate is ",qt.gamma[[1]],qt.gamma[[2]])
+hist(gamma.mean.boot, breaks = 50)
+```
+
+
