@@ -1,0 +1,100 @@
+---
+name: "Roy Nuñez"
+title: "BEE552 Biometry Problem Set 1"
+
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(rmarkdown)
+```
+```{r}
+rm(list=ls()) #removes all objects from the current workspace/R memory
+```
+
+1 (4 pts). What is the FORMULA (i.e., an equation) for the probability of obtaining any given combination of colors? Please define all variables used.
+$$\left( \frac{n!}{n_1!*n_2!*n_3!*n_4*n_5*n_6)} \right)*P_1^{n_1}*P_2^{n_2}*P_3^{n_3}*P_4^{n_4}*P_5^{n_5}*P_6^{n_6}$$
+
+n=total number in the bag  
+n1=number of blue           P1=probability of blue
+n2=number of brown          P2=probability of brown
+n3=number of green          P3=probability of green
+n4=number of orange         P4=probability of orange
+n5= number of red           P5=probability of red
+n6=probability of yellow    P6=probability of yellow
+
+```{r}
+n=16;n1=0;n2=2;n3=4;n4=5;n5=4;n6=2#initializing variables such as my observed M&M frequencies
+i.p=1/6 #independent probability
+```
+
+2a (2 pts). What is the actual PROBABILITY (i.e., a number, not an equation) of obtaining your combination of colors assuming that all colors are equally likely?
+
+```{r}
+(factorial(n)/((factorial(n1)*factorial(n2)*factorial(n3)*factorial(n4)*factorial(n5)*factorial(n6)))*(i.p)^n1*(i.p)^n2*(i.p)^n3*(i.p)^n4*(i.p)^n5*(i.p)^n6)
+```
+
+2b (2 pts). What is the PROBABILITY of obtaining your combination of colors given the actual distribution of colors (according to the company): 24% blue, 14% brown, 16% green, 19% orange, 13% red, 14% yellow?
+
+```{r}
+(factorial(n)/((factorial(n1)*factorial(n2)*factorial(n3)*factorial(n4)*factorial(n5)*factorial(n6)))*(.24)^n1*(.14)^n2*(.16)^n3*(.19)^n4*(.13)^n5*(.14)^n6)
+```
+
+2c (2 pts). What is the PROBABILITY of obtaining your combination of colors given the actual distribution of colors in your bag of M&Ms?
+
+```{r}
+(factorial(n)/((factorial(n1)*factorial(n2)*factorial(n3)*factorial(n4)*factorial(n5)*factorial(n6)))*(n1/n)^n1*(n2/n)^n2*(n3/n)^n3*(n4/n)^n4*(n5/n)^n5*(n6/n)^n6)
+```
+
+2d (2 pts) Comparing 2a-2c, what distribution of colors (equal probability, company-stated probability, sample-based probability) makes your bag of M&Ms more likely to have occurred.
+
+Out of the three distributions of colors, the sample-based probability is closer to my observed bag combination. This would be expected given that my calculated sample-based probability was based on my sample size.
+
+
+3 (12 pts). Write a short R script to simulate the combinations of colors that would have been possible from your bag of M&Ms assuming the company-stated color distribution (from 2b) and use this script to calculate the probability of obtaining the combination in your bag. There are many ways to solve this problem, but I am looking for you to solve it by sampling hypothetical bags of M&Ms and using that collection of bags to calculate the probability of obtaining your specific bag of M&Ms. [Hint 1: Try the R function ‘sample’. Hint 2: Make sure to write your script in a way that makes it possible to also answer Question 4] (Copy and paste your script below.) 
+```{r}
+#concatenating my probalities & colors into numeric & character objects
+
+p<-c(.24, .14, .16, .19, .13, .14);col<-c("Blue", "Brown", "Green", "Orange", "Red", "Yellow")
+#creating my dataframe with my defined variables making the colors the factors to directly sample from this pool
+t<-data.frame(p,col,stringsAsFactors = T)
+sample<-list();tsam<-list(); n.iter<-10000000 #declaring empty objects initializing max iteration variable
+for (i in 1:n.iter){
+  sample[[i]]<-sample(t[,2], size = 16, replace= TRUE, prob= t[,1])#sampling w/ replacement
+  tsam[[i]]<-paste(table(sample[[i]]),collapse = "")#collecting each sample outcome and concatanating its frequency counts into an iterable string object comprised of the combinations
+}
+dimnames(table(sample[[7]]))[[1]]
+head(tsam)[1:3]
+my.combo<-024542 #defining my combination
+cat("The probability of obtaining my bag's combination is ",length(tsam[tsam==my.combo])/n.iter)
+cat("Total frequency of occurances is",length(tsam[tsam==my.combo]))
+```
+
+
+4 (2 pts). According to your simulation, what was the most likely combination of colors? What was the probability of getting that most-likely combination?
+```{r}
+st<-names(which.max(table(unlist(tsam)))) #collecting the mode/most frequent combination
+s1<-strsplit(st,"")[[1]] #splitting that mode for subsequent merge sorting
+s2<-dimnames(table(sample[[7]]))[[1]]#collecting the color strings
+cat("My most likely combination of colors:",paste(s1,s2))
+cat("The probability of getting that most-likely combination:",length(tsam[tsam==st])/n.iter)
+```
+
+5 (2 pts). If each bag of M&Ms had contained 50 M&Ms, would your combination of colors (whatever they were) be more or less likely to have occurred and why?
+
+If each bag of M&Ms had contained 50 M&Ms my combination of colors would be much more likely to occur. Increasing that sample size will significantly increase the number of combinations that can occur, inversely decreasing the probability of my combination occuring.
+
+I believe the difference between the following two equations would demonstrate why.
+
+$$\left(\frac{50!}{\frac{n_1*50}{16}!*\frac{n_2*50}{16}!*\frac{n_3*50}{16}!*\frac{n_4*50}{16}!*\frac{n_5*50}{16}!*\frac{n_5*50}{16}!}\right)*P_1^{n_1}*P_2^{n_2}*P_3^{n_3}*P_4^{n_4}*P_5^{n_5}*P_6^{n_6}$$
+$$\left(\frac{16!}{\frac{n_1}{16}!*\frac{n_2}{16}!*\frac{n_3}{16}!*\frac{n_4}{16}!*\frac{n_5}{16}!*\frac{n_5}{16}!}\right)*P_1^{n_1}*P_2^{n_2}*P_3^{n_3}*P_4^{n_4}*P_5^{n_5}*P_6^{n_6}$$
+
+
+6 (2 pts). Lets say you have a bag of 20 M&Ms and find the first 19 are all blue. What is the probability that the 20th is also blue?
+
+Because the probablity of the 20th sampling outcome is idependent of the previous sample outcome(s), given the company-based distribution the independent probability is also blue is .24.
+
+
