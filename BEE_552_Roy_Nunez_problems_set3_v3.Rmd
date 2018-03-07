@@ -1,0 +1,211 @@
+---
+title: "BEE_552_Roy_Nunez_problem_set3_sv1"
+author: "Roy Nunez"
+date: "2/12/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Part I
+We will be using a data set  of four measurements of male Egyptian skulls from 5 different time periods. Thirty skulls are measured from each time period.
+
+Download the data in the file "skulls.txt" using 
+skulls<-read.table("skulls.txt",header=T)
+(If you haven't set your working directory, you will need to type in the full path)
+Look at the column names:
+names(skulls)
+Column Names:
+1.	MB: Maximal Breadth of Skull
+2.	BH: Basibregmatic Height of Skull
+3.	BL: Basialveolar Length of Skull
+4.	NH: Nasal Height of Skull
+5.	Year: Approximate Year of Skull Formation (negative = B.C., positive = A.D.)
+We want to use these data to do two things 1: To summarize the data and 2: To make inference about the population from which this sample was drawn.
+For now, let's group all the time periods together and use only the BL data (in other words, skulls$BL)
+
+
+```{r}
+rm(list=ls(all=TRUE))
+skulls<-read.table("skulldat.txt", header =T)
+names(skulls)
+```
+1)Make a histogram ofskulls$BL (COPY AND PASTE BELOW). (1pt)
+```{r}
+length(skulls$BL)/3
+hist(skulls$BL, main="Basialiveolar Skull Length",breaks=length(skulls$BL)/3)
+```
+
+2) What is the FORMULA for the sample mean and standard deviation (in other words, what is the formula you would want to use if you wanted to estimate the population mean [the \mu parameter assuming a normal distribution] and the population variance [σ^2  if we assume a normal distribution] from a sample that represented a random subset of the entire population)? (1 pt)
+
+sample mean
+$$ \bar{X} = {\frac{ \sum_{i =1}^{n}\hspace{2mm}X_i}{n}}$$
+standard deviation
+$$S = \sqrt{ \frac{\Sigma_i^n \hspace{2mm}\left(X_i -\bar{X}\right)^2}{n-1} } $$
+
+    
+3) What is the population about which we are trying to make inference (1 pt)? 
+
+```{r, echo=FALSE}
+cat("The population is comprised of male Egyptian skulls from five different epochs.")
+```
+
+4) Using	R,	what	are the	mean	and	the	standard	deviation	of	skulls$BL? (1	pt)
+
+```{r}
+cat("The mean of skulls$BL, the basialiveolar length of the skull, is",mean(skulls$BL))
+
+```
+```{r}
+cat("The standard deviation of skulls$BL, basialiveolar length of the skull, is",sd(skulls$BL))
+```
+
+5) What	is the	formula	for	the	standard	error	of	the	mean	(heretofore	s.e.)?	(1	pt)
+$$SEM = \sqrt{\frac{S^2}{n}}$$
+  
+6) Describe	the	difference	between	the	s.e.	(of	the	mean)	and	the	s.d. (1	pts)
+The standard deviation gives the distribution variance, a spread of  how the values vary from one another.The standard error of the mean is the standard deviation of the population mean.
+As the sample size increases the SEM decreases because the mean of a large sample is likely to be closer to the true population mean than is the mean of a small sample. Theoretically the standard deviation can remain the same as sample size becomes larger.
+
+7) Finish	the	sentence:	The	standard	error	is	the	standard	deviation	of the mean.	(1	pt)
+
+
+8) Use	the	MASS	package’s	‘fitdistr’	function	to	fit	a	normal	distribution	to	the	skulls$BL	data.	Do you get	the	roughly	same	answer	as	above? (2	pts)
+```{r}
+library(MASS)
+fitdistr(skulls$BL, "normal")
+
+```
+The mean and the sd of the output from fitdistr estimate are very close to the earlier basic R generated values. Values match up to the hundreth place and the tenth place, respectively. Roughly they are the same.
+```{r}
+cat("sd =", sd(skulls$BL), "mean =", mean(skulls$BL))
+```
+
+9) Why	might	it	not	be	valid	to	group	the	different	time periods	when	summarizing	the	data? (1 pts)
+These skulls are from different time periods, and they can be different populations. If you group the different time periods together and summarize the data you may not be capturing what the data actually reflects. 
+
+10) Using	the	R	command	‘boxplot’,	create	a	boxplot	to	compare	skulls$BL	across	different	Years.	(Remember,	use	“?boxplot”	to	get	more	information	about	the	parameter	inputs	to	boxplot.)	
+
+
+```{r}
+boxplot(BL~Year, data=skulls, xlab= "Year",ylab= "size",col="green", main="Size of Skulls at Different Years")
+
+```
+
+11) Make	the	case	(in	words	and/or	mathematically) that	the	Basialveolar	Length	of	Skull for Year=- 4000	is	or	is	not	statistically	different	from	the Basialveolar	Length	of	Skull for Year=150. (2	pts)	(As	we	have	not	covered	this	material	yet,	I’m	asking	you	to	make	an	argument.	I’m	less interested	in	the	right	answer	here	than	I	am	the	basic	processing	of	reasoning	through	the	answer.)
+
+The difference in the two population means can give insight to whether there is a difference between groups, but it is not a reliable difference/method.
+```{r}
+#Difference between means
+mean(skulls$BL[skulls$Year==-4000])-mean(skulls$BL[skulls$Year==150])
+```
+Because both sets of data are roughly normally distributed, and can be treated as different populations given the difference in years and pressumably independent samples, a t-test can tell whether this difference is reliable.
+
+$$H_o: There \hspace{1 mm}is\hspace{1 mm} no\hspace{1 mm} difference\hspace{1 mm} in \hspace{1mm} means \hspace{1 mm} in \hspace{1 mm} Basialveolar\hspace{1 mm} length\hspace{1 mm} between \hspace{1 mm} two \hspace{1 mm} groups , -4000 \hspace{1 mm} and\hspace{1 mm}  150$$
+$$H_a: There \hspace{1 mm}is\hspace{1 mm} a\hspace{1 mm} difference\hspace{1 mm} in \hspace{1mm} means \hspace{1 mm} in \hspace{1 mm} Basialveolar\hspace{1 mm} length\hspace{1 mm} between \hspace{1 mm} two \hspace{1 mm} groups , -4000 \hspace{1 mm} and\hspace{1 mm}  150$$
+```{r}
+t.test(skulls$BL[skulls$Year==-4000],skulls$BL[skulls$Year==150])
+```
+
+With a p-value 0.0001852 < 0.01, I reject the null hypothesis that there is no statistical difference between the Basialveolar	Length	of	Skulls for the years -4000 and 150 with a confidence interval CI(2.82,8.50). I conclude that there is a highly significant difference in means of these two groups.
+
+
+
+Part II
+Assume	an	experiment in which	the	number	of	plants	in	16	experimental	plots	is	counted	as:	
+  8,0,3,3,4,3,2,3,3,2,4,2,3,1,4,1
+
+We	want	to	model	the	number	of	plants	in	each	plot	as	being	distributed	according	to	a	Poisson	distribution.
+
+1)Starting	with	the	probability	density	function	for	the	Poisson,	manually	derive	the	maximum	likelihood	estimate	for	λ,	the	parameter	for	the	Poisson	distribution. (5	pts)
+
+$$f(X| \lambda) = \frac{e^{-\lambda} \hspace{1mm}\lambda^{X}}{X!}$$
+$$L(\lambda|X_i,...,X_n)= \prod_{i=1}^{n} f(X_i|\lambda)$$
+derivative of a sum equals the sum of the derivatives
+$$\ell(\lambda|X_i,...,Xn)=ln\prod_{i=1}^{n} f(X_i|\lambda)=\sum_{i=1}^{n}ln(\frac{e^{-\lambda} \hspace{1mm}\lambda^{X_i}}{X_i!})$$
+$$	\Rightarrow \sum_{i=1}^{n}(-\lambda +X_i  ln(\lambda) -ln(X_i !))$$
+
+$$	\Rightarrow  \sum_{i=1}^{n}-\lambda + \sum_{i=1}^{n}X_i  ln(\lambda) - \sum_{i=1}^{n} ln(X_i !)]$$
+partial derivative of the log-likelihood with respect to lambda
+$$ \frac{\partial \ell}{\partial \lambda}= \sum_{i=1}^{n} (-1 + \frac{X_i}{\lambda})	\Rightarrow -n +\sum_{i=1}^{n} \frac{X_i}{\lambda}=0$$
+The Maximum likelihood estimate for λ is the sample mean
+$$\sum_{i=1}^{n} \frac{X_i}{\lambda} =n \Rightarrow \lambda =\frac{1}{n}\sum_{i=1}^{n} {X_i} $$
+      
+
+
+    
+2) Write	an	R	function	to	calculate	the	negative	log-likelihood	for	this	data	as	described	by	the	Poisson	distribution. (5	pts)
+
+$$\hat{\lambda} =\frac{1}{n}\sum_{i=1}^{n} {X_i} \hspace{2mm}=(sample \hspace{2mm} mean)$$
+
+```{r}
+rm(list=ls(all=TRUE))
+plants<- c(8,0,3,3,4,3,2,3,3,2,4,2,3,1,4,1)#i.i.d observations
+lambda<-mean(plants) #sample mean/lambda estimate given poisson distribution
+lambda
+neg.log.lik<-function(theta, lam.est) sum(-log(dpois(theta, lam.est))) #negative log-likelihood function with two arguments theta=dataset and simulate lambda
+s.lam<-seq(.01,6,.01)#vector of simulated lambdas
+nLL.estimates<-lapply(s.lam, FUN=neg.log.lik, theta=plants)#apply my neg-log-likelihood function to a wide range of lambda estimates
+
+plot(s.lam,nLL.estimates, main="Negative Log-Likelihood Curve",col=ifelse(s.lam==2.8, "black", "red"), pch=ifelse(s.lam==2.8, 19, 1),cex=ifelse(s.lam==2.8, 2, 1))
+
+
+```
+
+
+3) Using your function for the negative log-likelihood, calculate the MLE for ??? and
+the 95th percentile confidence interval. What would the 99th percentile confidence
+interval be? (4 pts) [Hint: The 95th percentile cut-off is (1/2)??_(df=1)^2(0.95) =
+0.5*qchisq(0.95,df=1)=1.92; in other words, the NLL would have to be >1.92 higher than
+the minimum to fall outside the 95th percentile confidence interval. Likewise, the 99th
+percentile cut-off is (1/2)??_(df=1)^2(0.99) =3.32.]
+```{r}
+
+cat("My Maximum likelihood Estimate for lambda is:",min(unlist(nLL.estimates)))
+
+#Obtaining my maximum negative log-likelihood value using the optim optimization functionand a range of parameters
+p.nLL<- optim(method = "Brent", par = 0, fn=neg.log.lik, theta= plants,lower = 0, upper = 10)
+p.nLL$value
+
+```
+
+
+```{r}
+lc.95<-s.lam[which(nLL.estimates < 30.39034 + 1.92)[1]]#lower bound for the 95 percent CI
+uc.95<-s.lam[rev(which(nLL.estimates < 30.39034 + 1.92))[1]]#upper bound for the 95 percent CI
+
+lc.99<-s.lam[which(nLL.estimates < 30.39034 + 3.32)[1]]#lower bound for the 99 percent CI
+uc.99<-s.lam[rev(which(nLL.estimates < 30.39034 + 3.32))[1]]#upper bound for the 99 percent CI
+```
+```{r, echo=FALSE}
+cat("The MLE for lambda and the 95 percentile confidence interval is CI(",lc.95,",",uc.95,")")
+```
+
+```{r, echo=FALSE}
+cat("The MLE for lambda and the 99 percentile confidence interval is CI(",lc.99,",",uc.99,")")
+        
+```
+        
+4)Plot	the	likelihood	over	a	range	of	parameter	values	and	plot	the	boundaries	of	the	95th and 99th percentile	confidence	interval.	Remember:	The	confidence	interval	is	a	range	of	parameter	values,	it	is	NOT	the	likelihood	values	itself.	(COPY	AND	PASTE	PLOT) (3	pts) [Hint:	Consider	using the command 'abline' (in the "base" package) or 'segments' (found in the "graphics" package) to draw the boundaries of the confidence intervals.]   
+```{r}
+
+plot(s.lam,nLL.estimates, main="Negative Log-Likelihood Curve")
+abline(v=c(lc.95, uc.95) ,untf = FALSE, col="red") # 95% confidence interval
+abline(v=c(lc.99, uc.99) ,untf = FALSE, col="blue")# 99% confidence interval
+legend("topright",c("95% CI", "99% CI"),col=c("red", "blue"), lty=c(7,7))
+```
+
+Using the "bbmle" package (Bolker, 2017), I have also generated confidence intervals for the 50%,80%,90%,95% and 99% 
+```{r}
+library(bbmle)
+library(stats4)
+mll<-mle2(neg.log.lik, start = list(lam.est=.01), data = list(theta=plants))###
+
+profile(mll)
+plot(profile(mll), ylab="Negative Log Like-lihood", main="Negative Log Likelihood -Lamda Estimates")
+
+confint(mll, level=0.95)
+confint(mll, level=0.99)
+```
+

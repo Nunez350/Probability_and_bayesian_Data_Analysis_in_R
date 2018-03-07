@@ -1,0 +1,157 @@
+---
+title: "BEE552_problem_set_4"
+author: "Roy Nunez"
+date: "2/14/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+Download the dataset "diabetes.csv". This dataset describes a diabetes study in which blood glucose (stab.glu) was recorded for males and females (gender) in each of two locations (location).
+  
+  
+
+```{r}
+rm(list=ls(all=TRUE))
+diabetes<-read.csv("~/Desktop/BEE552_problem_set_4/diabetes.csv")
+males.bg<-with(diabetes, subset(stab.glu, gender== "male"))#subsetting males and females
+females.bg<-with(diabetes, subset(stab.glu, gender== "female"))
+```
+
+1) Write an R function to calculate the t.test by hand (Copy and paste here) (4 pts):
+library(data.table)
+
+```{r}
+
+t.star<-function(X.a,X.b){
+  m.a<-mean(X.a); m.b<-mean(X.b); n.a<-length(X.a);n.b<-length(X.b); s.a<-sd(X.a); s.b<-sd(X.b)
+  se <-sqrt(s.a^2/n.a + s.b^2/n.b)
+  mean.diff<-m.a-m.b
+  t<-mean.diff/se
+  t.r<- signif(t, 4)
+  dof <- ((sd(X.a)^2/n.a + sd(X.b)^2/n.b)^2 )/( (sd(X.a)^2/n.a)^2/(n.a-1) + (sd(X.b)^2/n.b)^2/(n.b-1))
+  p.val<-2*(1-abs(pt(t.r,dof)))
+  l.ci<-mean.diff-qt(.975, dof)*se
+  u.ci<-mean.diff+qt(.975, dof)*se
+  values<-c("t =", "df =", "p-value =", "Lower 95 % CI =","Upper 95 % CI =" , "mean of x =", "mean of y =")#preparing my string characters
+  ft<-paste(c(signif(t.r, 4),signif(dof, 5),signif(p.val, 4),signif(l.ci,5),signif(u.ci,5), m.a,m.b))#preparing my numeric values
+  get<-paste((paste(values,ft)))#merging both objects into paired strings
+  return(get)
+}
+
+```
+
+
+
+2.	Use your function to compare blood glucose levels for males and females in the study (aggregating the locations; in other words, use all the data). Compare your results with the R function "t.test". (Copy and paste results below.) Explain what every single number reported in the output of t.test means. (5 pts)
+```{r}
+tt<-t.star(males.bg,females.bg)#my t-test function applied to two data objects
+strsplit(tt, "\t")
+t.test(males.bg,females.bg) #Welch Two sample t-test for unknown population variance
+```
+The t-statistic measures the size of the difference relative to the variation in the sample data.The degrees of freedom, is the number of values in the computation of a statistic that are free to vary. The p-value is the probablity of getting a a test statistic as or more extreme than t* given the null hypothesis that both means are equal. The lower and upper limit 95 percent confidence intervals, a range of values where specified probability that the value of the mean lies within. The mean of both data objects, x and y, or male and female.
+
+a.	Interpret your results in words (1-2 sentences) (2 pts)
+
+At p-value = 0.02125, there is a < 5% probability that we would obtain a test statistic as or more extreme than T* if the null hypothesis was true. There is a 95% chance that my 95th percentile confidence intervals CI(1.90, 23.45) include the underlying population mean. We therefore reject the null hypothesis.
+
+
+
+A second approach to answering this question is to use a permutation test. Essentially, we want to ask whether the result obtained is unusual relative to all the results that might be obtained by permuting the gender labels associated with each blood glucose measurement. In other words, if we have n1 males in the study and n2 females, there are different ways in which the gender labels could be assigned to the glucose readings. We don't need to try all possible combinations, but a representative sample of them will generate a null distribution against which we can compare our test statistic.
+
+3.	Write a script to do a randomization test to test whether males and females have different mean blood glucose levels. Note that I haven't told you what test statistic to use, there are several perfectly valid options. (Copy and paste here) (5 pts):
+
+```{r}
+RUN.P<-600
+k.perm<- 1 #initiating number
+collect.means<-vector(length=RUN.P,mode="list")
+collect.sem<-vector(length=RUN.P,mode="list")
+collect.pval<-vector(length=RUN.P,mode="list")
+#pb<-txtProgressBar(min=1,max = RUN.P, style =3)#creating progress bar to visualize progress as the machine iterates through this code block
+for (j in 1:RUN.P){
+    diff.means<-c()
+    for (i in 1:k.perm) {  #loop randomly generates k.perm samples from diabetes pool and collects the difference in means
+      s.perm<- sample(diabetes$stab.glu) 
+      male<- s.perm[1:(length(males.bg))] 
+      female<- s.perm[(length(males.bg)+1):length(s.perm)] 
+      female.mean<-mean(female)
+      male.mean<- mean(male)
+      diff.means[[i]] <- female.mean - male.mean
+    }
+      #collect.means[[j]]<-diff.means
+      diff.t<-which(abs(diff.means) >= 12.86)#collect all differences greater than reference mean. because it is a two-tailed I take the absolute value to collect differences from both sides
+      pval<-length(diff.t)/k.perm #the number of differences greater than mean divided by number of permutations provides the probability of getting a test statistic as or more extreme than the null hypothesis
+    collect.pval[[j]]<-pval #collect that probability
+    collect.sem[[j]] <-sd(unlist(collect.pval)/k.perm) #Monte Carlo approximation of the p-value 
+    k.perm <- k.perm+1 #increase the number of permutations 
+  #  setTxtProgressBar(pb,j)
+    
+}
+
+
+
+```
+I conducted a series of the simple test statistic of the difference of the means in this randomized test. I generated a pvalue for every test. Based on the low p-values, I reject the null hypothesis that both means are equal.
+
+4.	How do your results compare with what you obtained in the previous two tests? Report your p-values! (2 pts)
+The distribution of my p-values vary and many compare to the values obtained in the two previous tests.The majority of p-values are however < 0.05.
+
+```{r}
+length(which(unlist(collect.pval) <=0.05))#p-values less than the appoited critical value
+
+plot(1:RUN.P,collect.pval)
+```
+
+5.	How many permutations do you need to consider before your p-values become stable (you are free to define "stable" but justify your definition)? (2 pts)
+
+Using the Monte Carlo approximation of the p-value (p) $$\sqrt{ \frac{p(1 −p)}{k}}$$ where k is the number of permutations, I have plotted the standard deviation of the p-values at each iteration. Based on the plot and visual asymptotic behavior and a look at the first 100 standard error values, it appears that p-values begin to stabilize after ~70 permutations.
+```{r}
+plot(1:RUN.P,collect.sem)
+```
+
+```{r}
+
+```
+
+Part II
+```{r}
+unlist(collect.sem[1:100])
+```
+
+Derive the formula (given below) for the sample size required to ensure that the probability of Type I error is  α and the power is  1-  for a two-sample case in which we assume the variance of both samples  2 is known. (10 pts)
+
+$$n=\left(\sigma\frac{Z_{1-\beta}+- Z_{1-\alpha}}{\mu -\mu_o}\right)^2$$
+
+
+One way of calculating power is to substract beta from 1 
+$$1- \beta = power$$
+The formula for power is 
+$$= \Phi \left(\frac{( \mu -mu_o)}{\sigma_n} - Z_{1-\alpha}\right)$$
+which is the cumulative distribution function of a standard normal distribution
+
+It can also be defined as the probability 
+$$1- \beta = P \left(\frac{( \mu -mu_o)}{\sigma_n} - Z_{1-\alpha}\right)$$
+$$1- \beta =P(-	\infty, Z_{1-\beta})$$
+
+
+We exclude infinity and evaluate at $$Z_{1- \beta}$$
+$$1- \beta =P(Z_{1-\beta})$$
+
+At a standard normal distribution we standardize across all samples
+$$Z_{1-\beta}= P \left(\frac{( \mu- \mu_o)}{\frac{\sigma}{ \sqrt{n}}} - Z_{1-\alpha}\right)$$
+
+$$Z_{1-\beta}+- Z_{1-\alpha}= \frac{( \mu- \mu_o)}{\frac{\sigma}{ \sqrt{n}}} $$
+
+
+
+
+$$Z_{1-\beta}+- Z_{1-\alpha}= \mu - \mu_o \frac{\sqrt{n}}{\sigma} $$
+
+
+$$\sigma\frac{Z_{1-\beta}+- Z_{1-\alpha}}{\mu -\mu_o}==\sqrt{n}$$
+$$\left(\sigma\frac{Z_{1-\beta}+- Z_{1-\alpha}}{\mu -\mu_o}\right)^2=n$$
+For a two-tailed test we multiply by two
+$$2\left(\sigma\frac{Z_{1-\beta}+- Z_{1-\alpha}}{\mu -\mu_o}\right)^2=n$$
