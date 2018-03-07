@@ -1,0 +1,279 @@
+---
+title: "BEE552_problem_set_2"
+author: "Roy Nunez"
+date: "2/1/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Question 1 (1 pt each)
+Let X be a discrete random variable whose pdf is described in the table given here:
+x	    -1  	0	 1
+f(x)	1/8	6/8	1/8
+
+FInd the following:
+a) P(X=0)   = $$a) P(X=0) =\frac{6}{8}$$
+b) P(X<1)  = $$b) P(X<1) = \frac{7}{8}$$
+c) P(X≤1)  = $$c) P(X≤1) = 1$$
+d) F(1)  =  $$c) F(1) = 1$$
+e) F(1) =$$c) F^1\left(\frac{7}{8}\right)= 0$$
+f) R(x) =$$R(x)=1-F(x)$$
+
+Question 2
+Assume that leaf biomass (in grams) from the plant Salix arctica can be described as having the following probability density function:
+                $$f\left(x\right)= \frac{2}{\left(x + 1\right)^3} \hspace{2 mm}for\hspace{2 mm} x > 0$$
+a) Another way of saying that this pdf is restricted to x>0 is to say that there is no support for x≤0. Why would this be the case here?
+In this particular situation the pdf is considering biomass. To get a meausre of biomass a value of greater than zero is required. Negative biomass does not apply here.
+b) Prove (using the two requirements for a valid pdf) that this is a valid pdf.
+f(x) greater than or equal to 0 for all positive values of x
+As long as x is bounded by 0 and the conditions of function are met then f(x) will be greater than 0     
+
+\hspace{1cm}
+c)	Manually (i.e., using calculus) calculate the probability that a leaf has biomass between 0 g and 3 g. In other words, find P(0<X<3).
+$$\int_{0}^{3} \frac{2}{(X +1)^3}=  2\int_{0}^{3}\frac{1}{(u)^3}du$$
+$$2\frac{u^-2}{-2} = \frac{2}{-2u^2} = \frac{1}{u^2}=\frac{1}{\left(x+1\right)^2}$$
+$$=\frac{1}{\left(3+1\right)^2}- \frac{1}{\left(0+1\right)^2}=\frac{1}{16}-\frac{-1}{1}$$
+$$=\frac{15}{16}$$
+
+d) Use the integrate function in R to confirm this result numerically.
+```{r}
+integrand<-function(x){2/(x+1)^3}
+integrate(integrand,0,3)
+```
+
+Question 3
+Bliss and R.A. Fisher (1953) examined female European red mite counts (Panonychus ulmi) on McIntosh apple trees [Malus domestica [McIntosh]). Counts of the mites on 150 leaves are shown here:
+
+Mites per leaf	0	1	2	3	4	5	6	7	8
+Leaves observed	70	38	17	10	9	3	2	1	0
+
+a)	What is the expected value E[X] of mites per leaf in this sample (show your work, either an R script or a calculation)?
+```{r}
+x<-c(0,1,2,3,4,5,6,7,8);y<-c(70,38,17,10,9,3,2,1,0)
+expect.v<-vector()
+for (i in 1:length(x)){
+  expect.v<-append(expect.v,x[i]*y[i]/sum(y))
+}
+cat("The expected value of mites per leaf in this sample is",sum(expect.v))
+
+```
+
+
+##b)	Assume for the moment that Bliss and Fisher used a Poisson distribution to describe the number of mites per leaf X (X~Pois(λ)). What would be the most reasonable value for the Poisson parameter λ and why? 
+The most reasonable value for the poisson parameter λ for the distribution of mites per leaf would be its expected value of, 1.146667. That is because the poisson parameter Lambda (λ) is equal to the variance and mean of the distribution, which in the case of the Poisson, the mean is also equal to the expected value of the distribution.
+
+<!-- variance and the mean of a Poisson random variable both = λ.  -->
+<!-- is the total number of events (k) divided by the number of units (n) in the data (λ = k/n). -->
+
+##c)	Make a barplot (the R function histogram should work, but as these are discrete variables, we would normally refer to this as a bar plot) of Bliss and Fisher's data. Is the expected value also the most common value? Why or why not?
+```{r}
+bliss.fisher<-rep(x,y)
+barplot(y,x, xlab = "Mites per leaf", ylab = "Leaves observed")
+dev.off()
+x<-c(0,1,2,3,4,5,6,7,8);y<-c(70,38,17,10,9,3,2,1,0)
+# A <- c(0,1,2,3,4,5,6,7,8) # mites per leaf
+# leaf<- c(70/150, 38/150, 17/150, 10/150, 9/150, 3/150, 2/150, 1/150, 0/150)
+# mites.per.leaf<- sample(x=A, size=150, replace=TRUE, prob = leaf)
+# hist(x=mites.per.leaf, breaks = 30, freq = TRUE)
+# stand.dev<-sd(mites.per.leaf, na.rm = FALSE)
+
+
+```
+
+
+d)	What is the standard deviation of the number of mites per leaf? What is the standard error of the mean (SEM) number of mites per leaf? In one sentence, describe the interpretation of the standard error of the mean?
+```{r}
+#am getting different standard errors, order matters?
+sd(bliss.fisher)
+x.bar
+x.bar<-mean(bliss.fisher)
+s<-numeric(length(bliss.fisher))
+for(i in seq_along(bliss.fisher)){
+  sa<-(bliss.fisher[i] -x.bar)**2
+  s<-append(s,sa)
+}
+sigma<-sqrt(sum(s)/149)#############
+sd(bliss.fisher)
+
+standard.error<-sqrt((sigma**2)/150)
+standard.error 
+```
+
+e)	To gain better intuition for the meaning of the standard error of the mean, create 1000 new datasets by sampling with replacement from the original dataset. Use those 1000 simulated datasests to calculate the standard error of the mean. Because of sampling error, this will not be exactly the same as what you calculated in part d, but it should be close. (2 pt BONUS: How would you go about simulating the sampling error of the SEM?)
+
+```{r}
+mites<-c(0,1,2,3,4,5,6,7,8)
+observed.counts<-c(70,38,17,10,9,3,2,1,0)
+probabilities.obser<-observed.counts/150
+r.samp<-sample(mites,1000, replace=TRUE, observed.counts )
+mean(r.samp)
+
+```
+
+
+Part II
+We are going to get some practice using these statistical distributions in a biological context, and in the process gain some extra practice writing R code. Read Viswanathan et al. (2008) for the biological context of this problem, but don't worry too much about the mathematical details (you can skim over Section 4). 
+
+This question is designed to get you writing some more sophisticated R scripts, with more emphasis on loops and logic, but there are some statistical and biological goals as well. Before getting to the actual question, I want to emphasize the following "take-home" messages:
+1.	There are many, many statistical distributions. We have learned only a small subset of all the statistical distributions. Long-tailed distributions (such as the Lévy, Cauchy, and Pareto) have many uses in ecology and evolution.
+2.	Simulations provide a straightforward way of studying complex stochastic phenomena.
+3.	Understanding 'pattern' goes a long way to understanding the underlying 'process'. Statistical distributions provide a way to quantify the pattern of your data. In many cases, only certain biological or ecological mechanisms can generate those patterns. 
+
+Write a short script to simulate the movement of animals operating according to the movement rules described below. For simplicity, we will assume only one-dimensional motion along a line. Animals can move forward, or backwards, along a line. For each animal, simulate 500 individuals each moving for 100 time steps each. Note that only Animal #1 and #2 are required for this problem set (8 pts total). Animals #3 and #4 are BONUS questions (3 pts each).
+Animal #1: This animal moves by "Brownian" motion. In each time step, the individual chooses a random direction (50% probability of moving forward or backwards [this is a Binomial process!]) and moves a distance given by (the absolute value of) N(μ=0,σ^2=1). (You can do this by combining a Bernoulli for direction with a distance given by the magnitude of the Normal, or just do it in one step by making the movement Normally distributed. The former approach will be more portable to Animals #2-#4.) Cut and paste your script and a histogram of the final location for each of the 500 individuals. Fit a normal distribution to that distribution (hint: use use 'fitdistr')- what is μ ̂ and (σ^2 ) ̂? 
+```{r}
+
+rm(list=ls(all=TRUE))
+walk.1<-function(steps.2=100){
+  t.walk.1<-c()
+  distance.a2<- abs(rnorm(100, mean = 0, sd = 1))
+  for (i in 1:100) {
+    if (rbinom(1,1, .5)==1){ 
+      #t.walk<-sum(t.walk,distance[i])
+      t.walk.1<- append(t.walk.1,distance.a2[i])
+    }else{ 
+      #t.walk<-sum(t.walk,-distance[i])
+      t.walk.1<- append(t.walk.1,-distance.a2[i])
+    }
+  }
+  return(sum(t.walk.1))
+}
+animal.1<-sapply(1:500, walk.1)
+animal.1
+
+library(MASS)
+fitnorm.1<-fitdistr(animal.1, "normal")
+hist1<-hist(animal.1, breaks = 30, freq = FALSE)
+dnorm1<-dnorm(hist1$mids, mean = fitnorm.1$estimate[1] , sd= fitnorm.1$estimate[2])
+lines(hist1$mids, dnorm1, col = "red")
+cat("The estimated standard deveiation is",fitnorm.1$estimate[2])
+cat("The estimated mean is",fitnorm.1$estimate[1])
+
+```
+
+
+
+
+
+Animal #2: This animal is similar to Animal #1 but it preferentially moves to the right. In each time step, there is a 60% chance the animal will move to the right, the distance moved is still given by N(μ=0,σ^2=1). Cut and paste your script and a histogram of the final location for each of the 500 individuals. Fit a normal distribution to that distribution (hint: use use 'fitdistr')- what is μ ̂ and (σ^2 ) ̂ now? Note that this is still a random walk, albeit one with drift.
+
+
+
+```{r}
+
+
+rm(list=ls(all=TRUE))
+take.2<-function(steps.2=100){
+  t.walk.2<-c()
+  distance.a2<- abs(rnorm(100, mean = 0, sd = 1))
+  for (i in 1:100) {
+    if (rbinom(1,1, .6)==1){ 
+      t.walk.2<-sum(t.walk.2,distance.a2[i])
+      #t.walk.2<- append(t.walk.2,distance.a2[i])
+    }else{ 
+      t.walk.2<-sum(t.walk.2,-distance.a2[i])
+      #t.walk.2<- append(t.walk.2,-distance.a2[i])
+    }
+  }
+  return(t.walk.2)
+}
+animal.2<-sapply(1:500, take.2)
+hist2<-hist(animal.2, breaks = 30, freq = FALSE)
+fitnorm.2<-fitdistr(animal.2, "normal")
+dnorm2<-dnorm(hist2$mids, mean = fitnorm.2$estimate[1] , sd= fitnorm.2$estimate[2])
+lines(hist2$mids, dnorm2, col = "red")
+cat("The estimated standard deveiation is",fitnorm.2$estimate[2])
+cat("The estimated mean is",fitnorm.2$estimate[1])
+```
+
+Animal #3: This animal walks with a certain amount of inertia. Distances are still given by N(μ=0,σ^2=1), but the probability of moving to the left or right depends on the previous move. The first move is random (50% chance of both left and right) but all subsequent moves have a 60% chance of being in the same direction as the previous move. Cut and paste your script and a histogram of the final location for each of the 500 individuals. Is the resulting distribution still normally distributed? If not, how does the final distribution of individuals differ from a normal? Why?
+
+
+
+
+```{r}
+rm(list=ls(all=TRUE))
+right.left<-c("right","left")
+StepF<-function(p, direction){
+  if (rbinom(1,1,p)== 1){
+    return(direction)
+  } else {
+    return(right.left[right.left!=direction])
+  }
+}
+
+
+random.walk<-function(num){
+get.data<-list(d=c(), n=c())
+distances<- abs(rnorm(100, mean = 0, sd = 1))
+store<-list(st=c(), di=c())
+net.distance<-c()
+steps<-ifelse(rbinom(1,1, .5)==1, "right","left")
+take<-c()
+
+  for( i in 1:100){
+    if (steps[i] == StepF(.6,steps[i]) ){
+      steps[[i+1]]<-steps[i]
+      net.distance<-sum(net.distance,distances[i])
+      store$st<-append(store$st,steps[i])
+      store$di<-append(store$di,distances[i])
+    } else {
+      steps[[i+1]]<-StepF(.5,steps[i])
+      net.distance<-sum(net.distance,-distances[i])
+      #store<-c(steps[i],distances[i])
+      store$st<-append(store$st,steps[i])
+      store$di<-append(store$di,-distances[i])
+    }
+
+  }
+
+get.data$d<-append(get.data$d,net.distance)
+get.data$n<-append(get.data$n,names(which.max(table(steps))))
+#position<-c(names(which.max(table(steps))),net.distance)
+#cat(i,position, "\n")
+#take<-append(take,position)
+#take<-append(take,store)#has everything
+#take<-append(take,net.distance)
+#take<-append(take,c(store,position))
+#return(take)
+return(list(get.data))
+}
+tt<-sapply(1:500, random.walk)
+t.data<-unlist(lapply(tt, "[[", "d"))
+hist.a3<-hist(unlist(lapply(tt, "[[", "d")),breaks = 30, freq = FALSE)
+
+
+```
+
+Animal #4: This animal has no preference for direction, so has a 50/50 chance of moving left or right at each time step. However, distances travelled are now NOT normally distributed, but are governed by the Cauchy distribution with location=0 and scale=2 [Hint: Use 'rcauchy']. The Cauchy distribution is 'pathological' in that is has no mean and no variance; in fact, none of the moments of the Cauchy are defined. The Cauchy is one of the so-called 'heavy-tailed' distributions, in that the probability of very large values declines more slowly than the exponential distribution. (Translation: Very large numbers are more likely with heavy-tailed distributions.) In this context, the Cauchy distribution will yield a lot of small moves and some very large moves. Cut and paste your script and a histogram of the final location for each of the 500 individuals. Is the resulting distribution still normally distributed? If not, how does the final distribution of individuals differ from a normal? Why?
+
+
+```{r}
+rm(list=ls(all=TRUE))
+animal.4<-function(ff){
+distances.a4<- abs(rcauchy(100,location = 0,scale = 2))
+for (i in 1:100){
+cap.distance.a4<-c()
+    if (rbinom(1,1, .5)==1){ 
+    cap.distance.a4<- sum(cap.distance.a4, distances.a4[i])
+  }else{ 
+    cap.distance.a4<- sum(cap.distance.a4,-distances.a4[i])
+  }
+}
+return(cap.distance.a4)
+}
+
+animal.4.walks<-sapply(1:500, animal.4)
+
+hist.a4<- hist(animal.4.walks, breaks = 30, freq = FALSE)
+fit.a4<-fitdistr(animal.4.walks, "normal")
+fit.a4
+mean.a4<-fit.a4$estimate[1]
+sd.a4<-fit.a4$estimate[2]
+dnorm.a4<-dnorm(hist.a4$mids, mean = mean.a4 , sd =sd.a4)
+lines(hist.a4$mids, dnorm.a4, col = "red")
+
+```
+
